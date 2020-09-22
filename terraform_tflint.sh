@@ -5,6 +5,7 @@ set -e
 main() {
   initialize_
   parse_cmdline_ "$@"
+  expand_config_param "${ARGS[@]}"
   tflint_
 }
 
@@ -45,6 +46,43 @@ parse_cmdline_() {
         ;;
     esac
   done
+}
+
+expand_config_param() {
+    ARGS=()
+    local passed=0 v c
+    while [ $# -ne 0 ]; do
+        echo "-- $1"
+        case "$1" in
+            -c|--config)
+                c=$1
+                shift
+                if [ "${1:0:1}" != / ]; then
+                    ARGS+=(--contig="$PWD/$1")
+                else
+                    ARGS+=($c)
+                    ARGS+=($1)
+                fi
+                passed=1
+                ;;
+            --config=*)
+                v="${1:9}"
+                if [ "${v:0:1}" != / ]; then
+                    ARGS+=(--config="$PWD/$v")
+                else
+                    ARGS+=($1)
+                fi
+                passed=1
+                ;;
+            *)
+                ARGS+=($1)
+                ;;
+        esac
+        shift
+    done
+    if [ "$passed" -eq 0 ]; then
+        ARGS+=(--config="$PWD/.tflint.hcl")
+    fi
 }
 
 tflint_() {
