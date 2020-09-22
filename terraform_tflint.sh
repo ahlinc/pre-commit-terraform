@@ -35,7 +35,7 @@ parse_cmdline_() {
     case $argv in
       -a | --args)
         shift
-        ARGS+=("$1")
+        ARGS+=($1)
         shift
         ;;
       --)
